@@ -12,7 +12,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="30dp"
-        android:text="Gorabeheren lista"
+        android:text="Listado de Incidencias"
         android:textSize="25sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
@@ -26,11 +26,24 @@
         android:layout_marginTop="24dp"
         android:layout_marginEnd="16dp"
         android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="Itxi saioa"
         android:src="@android:drawable/ic_lock_power_off"
+        android:contentDescription="Cerrar Sesión"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:tint="#D32F2F" />
+
+    <TextView
+        android:id="@+id/tvEmptyView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Ez dago gorabeherarik"
+        android:textSize="18sp"
+        android:textStyle="italic"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvIncidencias"

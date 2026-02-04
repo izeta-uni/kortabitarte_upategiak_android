@@ -3,7 +3,9 @@ package com.example.erronka4
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.view.View // Importante añadir esto para View.VISIBLE/GONE
 import android.widget.ImageButton
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
@@ -17,6 +19,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 class Incidencias : AppCompatActivity() {
 
     private lateinit var rvIncidencias: RecyclerView
+    private lateinit var tvEmptyView: TextView // Variable para el mensaje
     private lateinit var dbHelper: DatabaseHelper
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,31 +34,75 @@ class Incidencias : AppCompatActivity() {
         }
 
         dbHelper = DatabaseHelper(this)
+
+        // Inicializamos las vistas
         rvIncidencias = findViewById(R.id.rvIncidencias)
+        tvEmptyView = findViewById(R.id.tvEmptyView) // Inicializamos el TextView nuevo
+
         rvIncidencias.layoutManager = LinearLayoutManager(this)
 
-        // Boton añadir incidencia
         val btnAddIncidencia = findViewById<FloatingActionButton>(R.id.btnAddIncidencia)
         btnAddIncidencia.setOnClickListener {
             val intent = Intent(this, CreateIncidencia::class.java)
             startActivity(intent)
         }
 
-        // Logica cerrar sesion
         val btnLogout = findViewById<ImageButton>(R.id.btnLogout)
         btnLogout.setOnClickListener {
-            // Borrar SharedPreferences
             val settings = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             settings.edit().clear().apply()
 
-            // Volver al Login
             val intent = Intent(this, Login::class.java)
             startActivity(intent)
-
-            // Cerrar esta actividad para que no puedan volver atrás
             finish()
         }
 
+        // Si borramos la aplicacion se pierden los registros. Esto se usa para popular la lista.
+        // populateIncidencesDatabase()
+
+
+    }
+
+    private fun populateIncidencesDatabase() {
+        val tituluak = listOf(
+            "Botila apurtuta",
+            "Robotaren errorea",
+            "Tenperatura altuegia",
+            "Bidalketa atzeratua (UK)",
+            "Mahastian onddoak",
+            "Etiketa okerrak",
+            "Biltegiko argiak",
+            "Uraren filtrazioa",
+            "Kaxa galduak",
+            "Sistemaren hutsegitea"
+        )
+
+        val deskripzioak = listOf(
+            "Biltegian kaxa bat erori da eta 6 botila apurtu dira.",
+            "Etiketatzeko makina gelditu da 3. linean.",
+            "Hartzigarriaren tenperatura 28ºC-ra igo da, arriskutsua.",
+            "Londresera doan kamioia ez da iritsi orduan.",
+            "Ourenseko mahastian arazoak ikusi dira hostoetan.",
+            "Gourmet Ardoaren etiketak gaizki inprimatu dira.",
+            "Pasabide nagusiko argiak funditu dira.",
+            "Bulego nagusian ura sartzen ari da euriteagatik.",
+            "Inbentarioan 10 kaxa falta dira B2 sekzioan.",
+            "Zerbitzaria erori da eta ezin da eskaerarik sartu."
+        )
+
+        // Insertamos 10 incidencias
+        for (i in tituluak.indices) {
+            dbHelper.insertIncidencia(
+                titulo = tituluak[i],
+                descripcion = deskripzioak[i],
+                fecha = "04/02/2026",
+                uri = "" // Sin imagen
+            )
+        }
+
+        // Refrescamos la lista para verlo al momento
+        refreshListData()
+        Toast.makeText(this, "10 gorabehera sortu dira!", Toast.LENGTH_SHORT).show()
     }
 
     override fun onResume() {
@@ -64,9 +111,21 @@ class Incidencias : AppCompatActivity() {
     }
 
     private fun refreshListData() {
+        // Obtenemos los datos
         val listData = dbHelper.getAllIncidencias()
 
-        // Pasamos la función de borrar cada incidencia al adaptador
+        // Logica de vista vacia
+        if (listData.isEmpty()) {
+            // Si no hay datos muestra mensaje y oculta lista
+            tvEmptyView.visibility = View.VISIBLE
+            rvIncidencias.visibility = View.GONE
+        } else {
+            // Si hay datos oculta mensaje y muestra lista
+            tvEmptyView.visibility = View.GONE
+            rvIncidencias.visibility = View.VISIBLE
+        }
+        // -----------------------------
+
         val adapter = IncidenciasAdapter(listData) { incidentToDelete ->
             showDeleteConfirmationDialog(incidentToDelete)
         }
@@ -74,25 +133,22 @@ class Incidencias : AppCompatActivity() {
         rvIncidencias.adapter = adapter
     }
 
-    // Dialogo de confirmacion
     private fun showDeleteConfirmationDialog(incidencia: Incidencia) {
         val builder = AlertDialog.Builder(this)
         builder.setTitle("Ezabatu gorabehera?")
         builder.setMessage("Ziur zaude '${incidencia.titulo}' ezabatu nahi duzula? Ekintza hau ezin da desegin.")
 
-        // Botón SÍ
         builder.setPositiveButton("Bai, ezabatu") { dialog, _ ->
-            val deletedROws = dbHelper.deleteIncidencia(incidencia.id)
-            if (deletedROws > 0) {
+            val deletedRows = dbHelper.deleteIncidencia(incidencia.id)
+            if (deletedRows > 0) {
                 Toast.makeText(this, "Gorabehera ezabatua", Toast.LENGTH_SHORT).show()
-                refreshListData()
+                refreshListData() // Al recargar, se actualizará el mensaje si la lista queda vacía
             } else {
                 Toast.makeText(this, "Errorea ezabatzerakoan", Toast.LENGTH_SHORT).show()
             }
             dialog.dismiss()
         }
 
-        // Botón NO
         builder.setNegativeButton("Ez") { dialog, _ ->
             dialog.dismiss()
         }
