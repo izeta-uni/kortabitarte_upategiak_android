@@ -27,9 +27,9 @@ class Register : AppCompatActivity() {
         }
 
         // Vincular vistas
-        btnRegister = findViewById<Button>(R.id.btnCreateAcount)
-        editTextRegisterUsername = findViewById<EditText>(R.id.editTextRegisterUsername)
-        editTextRegisterPassword = findViewById<EditText>(R.id.editTextRegisterPassword)
+        btnRegister = findViewById(R.id.btnCreateAcount)
+        editTextRegisterUsername = findViewById(R.id.editTextRegisterUsername)
+        editTextRegisterPassword = findViewById(R.id.editTextRegisterPassword)
 
         // Inicializar la base de datos
         myDb = DatabaseHelper(this)
@@ -40,13 +40,13 @@ class Register : AppCompatActivity() {
             val password = editTextRegisterPassword.text.toString()
 
             if (username.isEmpty()) {
-                editTextRegisterUsername.error = "Username is required"
+                editTextRegisterUsername.error = "Erabiltzailea derrigorrezkoa da"
                 editTextRegisterUsername.requestFocus()
                 return@setOnClickListener
             }
 
             if (password.isEmpty()) {
-                editTextRegisterPassword.error = "Password is required"
+                editTextRegisterPassword.error = "Pasahitza derrigorrezkoa da"
                 editTextRegisterPassword.requestFocus()
                 return@setOnClickListener
             }
@@ -55,11 +55,11 @@ class Register : AppCompatActivity() {
 
             val id = myDb.insertUser(username, passwordHash)
             if (id > -1) {
-                Toast.makeText(this, "Usuario Guardado correctamente", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Erabiltzailea egoki gorde da", Toast.LENGTH_SHORT).show()
                 editTextRegisterUsername.text.clear()
                 editTextRegisterPassword.text.clear()
             } else {
-                Toast.makeText(this, "Error al guardar", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Errorea erabiltzailea gordetzerako garaian", Toast.LENGTH_SHORT).show()
             }
 
         }
