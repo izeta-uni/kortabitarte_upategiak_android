@@ -20,7 +20,6 @@ class Login : AppCompatActivity() {
     private lateinit var btnLogin: Button
     private lateinit var editTextUsername: EditText
     private lateinit var editTextPassword: EditText
-    private lateinit var btnGoToRegister: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,27 +31,23 @@ class Login : AppCompatActivity() {
             insets
         }
 
-        // Logica de auto login (shared preferences)
+        // Logica de auto login
         val settings: SharedPreferences = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-        // Verificamos si existe la clave "username"
         if (settings.contains("username")) {
-            // Si existe, vamos directo a Incidencias sin pedir contraseña
             val intent = Intent(this, Incidencias::class.java)
             startActivity(intent)
-            finish() // Cerramos Login para que no pueda volver atrás
+            finish()
         }
 
         // Vincular vistas
         btnLogin = findViewById(R.id.btnCreateAcount)
         editTextUsername = findViewById(R.id.editTextRegisterUsername)
         editTextPassword = findViewById(R.id.editTextRegisterPassword)
-        btnGoToRegister = findViewById(R.id.btnGoToRegister)
 
         // Inicializar la base de datos
         myDb = DatabaseHelper(this)
 
-        // Establecer el listener del botón
         btnLogin.setOnClickListener {
             val username = editTextUsername.text.toString()
             val password = editTextPassword.text.toString()
@@ -62,9 +57,10 @@ class Login : AppCompatActivity() {
             if (user != null) {
                 if (Hasher.verify(password.toCharArray(), user.passwordHash)) {
 
-                    // Guardar sesion al entrar
+                    // Guardar sesion y si es admin
                     val editor = settings.edit()
                     editor.putString("username", username)
+                    editor.putBoolean("isAdmin", user.isAdmin) // Guardamos rol
                     editor.apply()
 
                     val intent = Intent(this, Incidencias::class.java)
@@ -76,11 +72,6 @@ class Login : AppCompatActivity() {
             } else {
                 Toast.makeText(this, "Erabiltzailea hau ez dago erregistratuta", Toast.LENGTH_SHORT).show()
             }
-        }
-
-        btnGoToRegister.setOnClickListener {
-            val intent = Intent(this, Register::class.java)
-            startActivity(intent)
         }
     }
 }

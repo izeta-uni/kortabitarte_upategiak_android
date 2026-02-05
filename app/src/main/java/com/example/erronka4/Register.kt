@@ -2,6 +2,7 @@ package com.example.erronka4
 
 import android.os.Bundle
 import android.widget.Button
+import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -15,6 +16,7 @@ class Register : AppCompatActivity() {
     private lateinit var btnRegister: Button
     private lateinit var editTextRegisterUsername: EditText
     private lateinit var editTextRegisterPassword: EditText
+    private lateinit var cbIsAdmin: CheckBox
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,6 +32,7 @@ class Register : AppCompatActivity() {
         btnRegister = findViewById(R.id.btnCreateAcount)
         editTextRegisterUsername = findViewById(R.id.editTextRegisterUsername)
         editTextRegisterPassword = findViewById(R.id.editTextRegisterPassword)
+        cbIsAdmin = findViewById(R.id.cbIsAdmin) // Vinculamos checkbox
 
         // Inicializar la base de datos
         myDb = DatabaseHelper(this)
@@ -38,6 +41,7 @@ class Register : AppCompatActivity() {
 
             val username = editTextRegisterUsername.text.toString()
             val password = editTextRegisterPassword.text.toString()
+            val isAdmin = cbIsAdmin.isChecked
 
             if (username.isEmpty()) {
                 editTextRegisterUsername.error = "Erabiltzailea derrigorrezkoa da"
@@ -51,13 +55,15 @@ class Register : AppCompatActivity() {
                 return@setOnClickListener
             }
 
+            // Obtenemos el hash de la contraseña
             val passwordHash = Hasher.hash(password.toCharArray())
 
-            val id = myDb.insertUser(username, passwordHash)
+            // Insertamos el nuevo suuario
+            val id = myDb.insertUser(username, passwordHash, isAdmin)
+
             if (id > -1) {
                 Toast.makeText(this, "Erabiltzailea egoki gorde da", Toast.LENGTH_SHORT).show()
-                editTextRegisterUsername.text.clear()
-                editTextRegisterPassword.text.clear()
+                finish()
             } else {
                 Toast.makeText(this, "Errorea erabiltzailea gordetzerako garaian", Toast.LENGTH_SHORT).show()
             }

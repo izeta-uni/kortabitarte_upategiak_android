@@ -9,6 +9,7 @@ data class User(
     val id: Int,
     val username: String,
     val passwordHash: String,
+    val isAdmin: Boolean
 )
 
 data class Incidencia(
@@ -25,13 +26,14 @@ class DatabaseHelper(context: Context) :
     companion object {
         private const val DATABASE_NAME = "Erronka4.db"
 
-        private const val DATABASE_VERSION = 2
+        private const val DATABASE_VERSION = 3
 
         // --- TABLA USUARIOS ---
         private const val TABLE_USERS = "users"
         private const val COL_USER_ID = "id"
         private const val COL_USERNAME = "username"
         private const val COL_PASSWORD_HASH = "password_hash"
+        private const val COL_IS_ADMIN = "is_admin"
 
         // --- TABLA INCIDENCIAS ---
         private const val TABLE_INCIDENCIAS = "incidencias"
@@ -43,12 +45,13 @@ class DatabaseHelper(context: Context) :
     }
 
     override fun onCreate(db: SQLiteDatabase) {
-        // 1. Crear Tabla Usuarios
+        // 1. Crear Tabla Usuarios con campo is_admin
         val createTableUsers = """
             CREATE TABLE $TABLE_USERS (
                 $COL_USER_ID INTEGER PRIMARY KEY AUTOINCREMENT,
                 $COL_USERNAME TEXT,
-                $COL_PASSWORD_HASH TEXT
+                $COL_PASSWORD_HASH TEXT,
+                $COL_IS_ADMIN INTEGER DEFAULT 0
             )
         """.trimIndent()
         db.execSQL(createTableUsers)
@@ -64,10 +67,14 @@ class DatabaseHelper(context: Context) :
             )
         """.trimIndent()
         db.execSQL(createTableIncidencias)
+
+        // Insertar usuario ADMIN por defecto para no quedarnos fuera (Pass: admin)
+        // Hash generado previamente para "admin"
+        val adminHash = Hasher.hash("admin".toCharArray())
+        db.execSQL("INSERT INTO $TABLE_USERS ($COL_USERNAME, $COL_PASSWORD_HASH, $COL_IS_ADMIN) VALUES ('admin', '$adminHash', 1)")
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        // (En una app real profesional usaríamos ALTER TABLE para no perder datos)
         db.execSQL("DROP TABLE IF EXISTS $TABLE_USERS")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_INCIDENCIAS")
         onCreate(db)
@@ -77,11 +84,12 @@ class DatabaseHelper(context: Context) :
     // MÉTODOS PARA USUARIOS
     // ==========================================
 
-    fun insertUser(username: String, passwordHash: String): Long {
+    fun insertUser(username: String, passwordHash: String, isAdmin: Boolean = false): Long {
         val db = this.writableDatabase
         val values = ContentValues().apply {
             put(COL_USERNAME, username)
             put(COL_PASSWORD_HASH, passwordHash)
+            put(COL_IS_ADMIN, if (isAdmin) 1 else 0)
         }
         val result = db.insert(TABLE_USERS, null, values)
         db.close()
@@ -100,7 +108,10 @@ class DatabaseHelper(context: Context) :
             val id = cursor.getInt(cursor.getColumnIndexOrThrow(COL_USER_ID))
             val storedUsername = cursor.getString(cursor.getColumnIndexOrThrow(COL_USERNAME))
             val storedHash = cursor.getString(cursor.getColumnIndexOrThrow(COL_PASSWORD_HASH))
-            user = User(id, storedUsername, storedHash)
+            // Leemos si es admin (1 = true, 0 = false)
+            val isAdminInt = cursor.getInt(cursor.getColumnIndexOrThrow(COL_IS_ADMIN))
+
+            user = User(id, storedUsername, storedHash, isAdminInt == 1)
         }
         cursor.close()
         db.close()
@@ -127,7 +138,7 @@ class DatabaseHelper(context: Context) :
     fun getAllIncidencias(): List<Incidencia> {
         val lista = ArrayList<Incidencia>()
         val db = this.readableDatabase
-        val query = "SELECT * FROM $TABLE_INCIDENCIAS ORDER BY $COL_INC_ID DESC" // Las nuevas primero
+        val query = "SELECT * FROM $TABLE_INCIDENCIAS ORDER BY $COL_INC_ID DESC"
 
         val cursor = db.rawQuery(query, null)
 
@@ -149,7 +160,6 @@ class DatabaseHelper(context: Context) :
 
     fun deleteIncidencia(id: Int): Int {
         val db = this.writableDatabase
-        // Borramos la fila donde el ID coincida
         val result = db.delete(TABLE_INCIDENCIAS, "$COL_INC_ID = ?", arrayOf(id.toString()))
         db.close()
         return result

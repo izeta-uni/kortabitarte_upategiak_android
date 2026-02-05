@@ -3,7 +3,8 @@ package com.example.erronka4
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.view.View // Importante añadir esto para View.VISIBLE/GONE
+import android.view.View
+import android.widget.Button // Importante
 import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
@@ -19,8 +20,9 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 class Incidencias : AppCompatActivity() {
 
     private lateinit var rvIncidencias: RecyclerView
-    private lateinit var tvEmptyView: TextView // Variable para el mensaje
+    private lateinit var tvEmptyView: TextView
     private lateinit var dbHelper: DatabaseHelper
+    private lateinit var btnRegisterUser: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,7 +39,22 @@ class Incidencias : AppCompatActivity() {
 
         // Inicializamos las vistas
         rvIncidencias = findViewById(R.id.rvIncidencias)
-        tvEmptyView = findViewById(R.id.tvEmptyView) // Inicializamos el TextView nuevo
+        tvEmptyView = findViewById(R.id.tvEmptyView)
+        btnRegisterUser = findViewById(R.id.btnRegisterUser)
+
+        // Comprobar si es admin
+        val settings = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val isAdmin = settings.getBoolean("isAdmin", false)
+
+        if (isAdmin) {
+            btnRegisterUser.visibility = View.VISIBLE
+            btnRegisterUser.setOnClickListener {
+                val intent = Intent(this, Register::class.java)
+                startActivity(intent)
+            }
+        } else {
+            btnRegisterUser.visibility = View.GONE
+        }
 
         rvIncidencias.layoutManager = LinearLayoutManager(this)
 
@@ -49,60 +66,12 @@ class Incidencias : AppCompatActivity() {
 
         val btnLogout = findViewById<ImageButton>(R.id.btnLogout)
         btnLogout.setOnClickListener {
-            val settings = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             settings.edit().clear().apply()
 
             val intent = Intent(this, Login::class.java)
             startActivity(intent)
             finish()
         }
-
-        // Si borramos la aplicacion se pierden los registros. Esto se usa para popular la lista.
-        // populateIncidencesDatabase()
-
-
-    }
-
-    private fun populateIncidencesDatabase() {
-        val tituluak = listOf(
-            "Botila apurtuta",
-            "Robotaren errorea",
-            "Tenperatura altuegia",
-            "Bidalketa atzeratua (UK)",
-            "Mahastian onddoak",
-            "Etiketa okerrak",
-            "Biltegiko argiak",
-            "Uraren filtrazioa",
-            "Kaxa galduak",
-            "Sistemaren hutsegitea"
-        )
-
-        val deskripzioak = listOf(
-            "Biltegian kaxa bat erori da eta 6 botila apurtu dira.",
-            "Etiketatzeko makina gelditu da 3. linean.",
-            "Hartzigarriaren tenperatura 28ºC-ra igo da, arriskutsua.",
-            "Londresera doan kamioia ez da iritsi orduan.",
-            "Ourenseko mahastian arazoak ikusi dira hostoetan.",
-            "Gourmet Ardoaren etiketak gaizki inprimatu dira.",
-            "Pasabide nagusiko argiak funditu dira.",
-            "Bulego nagusian ura sartzen ari da euriteagatik.",
-            "Inbentarioan 10 kaxa falta dira B2 sekzioan.",
-            "Zerbitzaria erori da eta ezin da eskaerarik sartu."
-        )
-
-        // Insertamos 10 incidencias
-        for (i in tituluak.indices) {
-            dbHelper.insertIncidencia(
-                titulo = tituluak[i],
-                descripcion = deskripzioak[i],
-                fecha = "04/02/2026",
-                uri = "" // Sin imagen
-            )
-        }
-
-        // Refrescamos la lista para verlo al momento
-        refreshListData()
-        Toast.makeText(this, "10 gorabehera sortu dira!", Toast.LENGTH_SHORT).show()
     }
 
     override fun onResume() {
@@ -111,20 +80,15 @@ class Incidencias : AppCompatActivity() {
     }
 
     private fun refreshListData() {
-        // Obtenemos los datos
         val listData = dbHelper.getAllIncidencias()
 
-        // Logica de vista vacia
         if (listData.isEmpty()) {
-            // Si no hay datos muestra mensaje y oculta lista
             tvEmptyView.visibility = View.VISIBLE
             rvIncidencias.visibility = View.GONE
         } else {
-            // Si hay datos oculta mensaje y muestra lista
             tvEmptyView.visibility = View.GONE
             rvIncidencias.visibility = View.VISIBLE
         }
-        // -----------------------------
 
         val adapter = IncidenciasAdapter(listData) { incidentToDelete ->
             showDeleteConfirmationDialog(incidentToDelete)
@@ -142,7 +106,7 @@ class Incidencias : AppCompatActivity() {
             val deletedRows = dbHelper.deleteIncidencia(incidencia.id)
             if (deletedRows > 0) {
                 Toast.makeText(this, "Gorabehera ezabatua", Toast.LENGTH_SHORT).show()
-                refreshListData() // Al recargar, se actualizará el mensaje si la lista queda vacía
+                refreshListData()
             } else {
                 Toast.makeText(this, "Errorea ezabatzerakoan", Toast.LENGTH_SHORT).show()
             }

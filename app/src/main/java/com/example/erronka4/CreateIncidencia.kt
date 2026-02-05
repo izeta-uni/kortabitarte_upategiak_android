@@ -91,9 +91,12 @@ class CreateIncidencia : AppCompatActivity() {
         btnSave.setOnClickListener {
             saveIncidencia()
         }
-    }
 
-    // --- FUNCIONES NUEVAS ---
+        // Mostrar el calendario al hacer click en el input de fecha
+        etDate.setOnClickListener {
+            showDatePickerDialog()
+        }
+    }
 
     private fun showImageSelectionDialog() {
         val options = arrayOf("Kamera", "Galeria")
@@ -110,6 +113,19 @@ class CreateIncidencia : AppCompatActivity() {
             }
         }
         builder.show()
+    }
+
+    private fun showDatePickerDialog() {
+        val calendar = java.util.Calendar.getInstance()
+        val year = calendar.get(java.util.Calendar.YEAR)
+        val month = calendar.get(java.util.Calendar.MONTH)
+        val day = calendar.get(java.util.Calendar.DAY_OF_MONTH)
+
+        android.app.DatePickerDialog(this, { _, selectedYear, selectedMonth, selectedDay ->
+            // Formateamos la fecha a dd/MM/yyyy
+            val formattedDate = String.format("%02d/%02d/%d", selectedDay, selectedMonth + 1, selectedYear)
+            etDate.setText(formattedDate)
+        }, year, month, day).show()
     }
 
     private fun checkCameraPermission() {

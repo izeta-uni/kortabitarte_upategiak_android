@@ -7,52 +7,63 @@
     android:layout_height="match_parent"
     tools:context=".Register">
 
-    <EditText
-        android:id="@+id/editTextRegisterPassword"
+    <TextView
+        android:id="@+id/textViewRegister"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="30dp"
-        android:ems="10"
-        android:hint="Pasahitza"
-        android:inputType="text"
-        android:textSize="18sp"
+        android:layout_marginTop="200dp"
+        android:text="Erregistratu Erabiltzailea"
+        android:textSize="28sp"
+        android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editTextRegisterUsername" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <EditText
         android:id="@+id/editTextRegisterUsername"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="80dp"
-        android:ems="10"
+        android:layout_marginTop="50dp"
+        android:ems="14"
         android:hint="Erabiltzailea"
         android:inputType="text"
-        android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView4" />
+        app:layout_constraintTop_toBottomOf="@+id/textViewRegister" />
 
-    <TextView
-        android:id="@+id/textView4"
+    <EditText
+        android:id="@+id/editTextRegisterPassword"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="160dp"
-        android:text="Sortu kontua"
-        android:textSize="20sp"
+        android:layout_marginTop="20dp"
+        android:ems="14"
+        android:hint="Pasahitza"
+        android:inputType="textPassword"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/editTextRegisterUsername" />
 
-    <Button
-        android:id="@+id/btnCreateAcount"
+    <CheckBox
+        android:id="@+id/cbIsAdmin"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="38dp"
-        android:text="Sortu kontua"
+        android:layout_marginTop="20dp"
+        android:text="Administratzailea?"
         android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/editTextRegisterPassword" />
+
+    <Button
+        android:id="@+id/btnCreateAcount"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="60dp"
+        android:layout_marginTop="30dp"
+        android:layout_marginEnd="60dp"
+        android:text="Gorde Erabiltzailea"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/cbIsAdmin" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
