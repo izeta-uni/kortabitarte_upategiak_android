@@ -4,7 +4,10 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.text.method.HideReturnsTransformationMethod
+import android.text.method.PasswordTransformationMethod
 import android.widget.Button
+import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -20,6 +23,7 @@ class Login : AppCompatActivity() {
     private lateinit var btnLogin: Button
     private lateinit var editTextUsername: EditText
     private lateinit var editTextPassword: EditText
+    private lateinit var showPasswordCheckbox: CheckBox
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,6 +48,20 @@ class Login : AppCompatActivity() {
         btnLogin = findViewById(R.id.btnCreateAcount)
         editTextUsername = findViewById(R.id.editTextRegisterUsername)
         editTextPassword = findViewById(R.id.editTextRegisterPassword)
+        showPasswordCheckbox = findViewById(R.id.showPasswordCheckbox)
+
+        // Lógica para mostrar/ocultar contraseña
+        showPasswordCheckbox.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                // Mostrar contraseña
+                editTextPassword.transformationMethod = HideReturnsTransformationMethod.getInstance()
+            } else {
+                // Ocultar contraseña
+                editTextPassword.transformationMethod = PasswordTransformationMethod.getInstance()
+            }
+            // Mantener el cursor al final del texto después del cambio
+            editTextPassword.setSelection(editTextPassword.text.length)
+        }
 
         // Inicializar la base de datos
         myDb = DatabaseHelper(this)
