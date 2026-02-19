@@ -2,8 +2,9 @@ package com.example.erronka4
 
 import android.content.ContentValues
 import android.content.Context
-import android.database.sqlite.SQLiteDatabase
-import android.database.sqlite.SQLiteOpenHelper
+import net.sqlcipher.database.SQLiteDatabase
+import net.sqlcipher.database.SQLiteOpenHelper
+import net.sqlcipher.Cursor
 
 data class User(
     val id: Int,
@@ -23,10 +24,14 @@ data class Incidencia(
 class DatabaseHelper(context: Context) :
     SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
 
-    companion object {
-        private const val DATABASE_NAME = "Erronka4.db"
+    init {
+        SQLiteDatabase.loadLibs(context)
+    }
 
+    companion object {
+        private const val DATABASE_NAME = "Erronka4_secure.db"
         private const val DATABASE_VERSION = 3
+        private const val DB_PASS = "Seguridad_Erronka_2026"
 
         // --- TABLA USUARIOS ---
         private const val TABLE_USERS = "users"
@@ -68,10 +73,10 @@ class DatabaseHelper(context: Context) :
         """.trimIndent()
         db.execSQL(createTableIncidencias)
 
-        // Insertar usuario ADMIN por defecto para no quedarnos fuera (Pass: admin)
-        // Hash generado previamente para "admin"
-        val adminHash = Hasher.hash("admin".toCharArray())
-        db.execSQL("INSERT INTO $TABLE_USERS ($COL_USERNAME, $COL_PASSWORD_HASH, $COL_IS_ADMIN) VALUES ('admin', '$adminHash', 1)")
+        // Insertar usuario ADMIN por defecto para que el sistema sea sencillo
+        val adminUser = "kudeatzaile_nagusia"
+        val adminHash = Hasher.hash("Upela-Segurua-Kortabide.26#".toCharArray())
+        db.execSQL("INSERT INTO $TABLE_USERS ($COL_USERNAME, $COL_PASSWORD_HASH, $COL_IS_ADMIN) VALUES ('$adminUser', '$adminHash', 1)")
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
@@ -85,7 +90,7 @@ class DatabaseHelper(context: Context) :
     // ==========================================
 
     fun insertUser(username: String, passwordHash: String, isAdmin: Boolean = false): Long {
-        val db = this.writableDatabase
+        val db = this.getWritableDatabase(DB_PASS)
         val values = ContentValues().apply {
             put(COL_USERNAME, username)
             put(COL_PASSWORD_HASH, passwordHash)
@@ -97,7 +102,7 @@ class DatabaseHelper(context: Context) :
     }
 
     fun getUser(username: String): User? {
-        val db = this.readableDatabase
+        val db = this.getReadableDatabase(DB_PASS)
         val selection = "$COL_USERNAME = ?"
         val selectionArgs = arrayOf(username)
 
@@ -108,7 +113,6 @@ class DatabaseHelper(context: Context) :
             val id = cursor.getInt(cursor.getColumnIndexOrThrow(COL_USER_ID))
             val storedUsername = cursor.getString(cursor.getColumnIndexOrThrow(COL_USERNAME))
             val storedHash = cursor.getString(cursor.getColumnIndexOrThrow(COL_PASSWORD_HASH))
-            // Leemos si es admin (1 = true, 0 = false)
             val isAdminInt = cursor.getInt(cursor.getColumnIndexOrThrow(COL_IS_ADMIN))
 
             user = User(id, storedUsername, storedHash, isAdminInt == 1)
@@ -123,7 +127,7 @@ class DatabaseHelper(context: Context) :
     // ==========================================
 
     fun insertIncidencia(titulo: String, descripcion: String, fecha: String, uri: String): Long {
-        val db = this.writableDatabase
+        val db = this.getWritableDatabase(DB_PASS)
         val values = ContentValues().apply {
             put(COL_INC_TITULO, titulo)
             put(COL_INC_DESCRIPCION, descripcion)
@@ -137,7 +141,7 @@ class DatabaseHelper(context: Context) :
 
     fun getAllIncidencias(): List<Incidencia> {
         val lista = ArrayList<Incidencia>()
-        val db = this.readableDatabase
+        val db = this.getReadableDatabase(DB_PASS)
         val query = "SELECT * FROM $TABLE_INCIDENCIAS ORDER BY $COL_INC_ID DESC"
 
         val cursor = db.rawQuery(query, null)
@@ -159,7 +163,7 @@ class DatabaseHelper(context: Context) :
     }
 
     fun deleteIncidencia(id: Int): Int {
-        val db = this.writableDatabase
+        val db = this.getWritableDatabase(DB_PASS)
         val result = db.delete(TABLE_INCIDENCIAS, "$COL_INC_ID = ?", arrayOf(id.toString()))
         db.close()
         return result
